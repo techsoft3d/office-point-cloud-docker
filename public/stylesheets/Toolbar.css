@@ -7,7 +7,7 @@
 }
 
 .toolbar-tools {
-    background: rgba(255,255,255,1.0);
+    background: rgba(255, 255, 255, 1.0);
     border: 1px solid black;
     border-radius: 6px;
     margin: 0;
@@ -45,7 +45,7 @@
 }
 
 .toolbar-submenu {
-    background: rgba(255,255,255,1.0);
+    background: rgba(255, 255, 255, 1.0);
     display: none;
     position: absolute;
     border: 1px solid black;
@@ -83,7 +83,7 @@
 }
 
 #explosion-slider {
-    background: rgb(222,222,222);
+    background: rgb(222, 222, 222);
 }
 
 .toolbar-cp-plane {
@@ -112,7 +112,8 @@
     border: 1px solid #020203;
 }
 
-.submenus:after, .submenus:before {
+.submenus:after,
+.submenus:before {
     top: 100%;
     border: solid transparent;
     content: " ";
@@ -124,7 +125,7 @@
 
 .submenus:after {
     border-color: rgba(136, 183, 213, 0);
-    border-top-color: rgba(255,255,255,1);
+    border-top-color: rgba(255, 255, 255, 1);
     border-width: 7px;
     left: 50%;
     margin-left: -7px;
@@ -142,13 +143,14 @@
 .smarrow {
     position: relative;
     background: #88b7d5;
-    border: 1px solid rgb(128,128,128);
+    border: 1px solid rgb(128, 128, 128);
     margin: 0 auto;
     width: 3px;
     top: -2px;
 }
 
-.smarrow:after, .smarrow:before {
+.smarrow:after,
+.smarrow:before {
     bottom: 100%;
     border: solid transparent;
     content: " ";
@@ -168,7 +170,7 @@
 
 .smarrow:before {
     border-color: rgba(194, 225, 245, 0);
-    border-bottom-color: rgb(128,128,128);
+    border-bottom-color: rgb(128, 128, 128);
     border-width: 4px;
     left: 50%;
     margin-left: -4px;
@@ -179,8 +181,9 @@
 }
 
 
-.tool-icon, .submenu-icon {
-    background: url(images/toolbarsprite.png?v=2021PC) no-repeat top left;
+.tool-icon,
+.submenu-icon {
+    background: url(images/toolbarsprite.png?v=2016U1) no-repeat top left;
 }
 
 /* PASTSE SPRITESHEET FROM  https://draeton.github.io/stitches/ here
@@ -651,7 +654,7 @@
     width: 32px;
     height: 32px;
     background-position: -341px -5px;
-    
+
     /* Temporary style to differentiate between the xray and wireframe icon */
-    background-color: lightgrey; 
+    background-color: lightgrey;
 }
