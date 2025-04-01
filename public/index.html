@@ -48,7 +48,9 @@
 
   <script type="text/javascript">
 
-    initializeViewer()
+    document.addEventListener("DOMContentLoaded", () => {
+      initializeViewer();
+    });
 
     async function startViewer(modelName) {
 
@@ -118,15 +120,15 @@
       let solidVisible = true;
 
       // add additional buttons for point cloud and solid visibility to the interface
-      // document.querySelector(".toolbar-tools").innerHTML += `
-      //             <div id="tool_separator_5" class="tool-separator"></div>
-      //             <div id="toggle-scan-button" title="Toggle Point Cloud Visibility" data-operatorclass="toolbar-toggle-scan" class="hoops-tool">
-      //                 <div class="tool-icon"></div>
-      //             </div>
-      //             <div id="toggle-solid-button" title="Toggle Solid Visibility" data-operatorclass="toolbar-toggle-solid" class="hoops-tool active-tool">
-      //                 <div class="tool-icon"></div>
-      //             </div>     
-      //         `;
+      document.querySelector(".toolbar-tools").innerHTML += `
+                  <div id="tool_separator_5" class="tool-separator"></div>
+                  <div id="toggle-scan-button" title="Toggle Point Cloud Visibility" data-operatorclass="toolbar-toggle-scan" class="hoops-tool">
+                      <div class="tool-icon"></div>
+                  </div>
+                  <div id="toggle-solid-button" title="Toggle Solid Visibility" data-operatorclass="toolbar-toggle-solid" class="hoops-tool active-tool">
+                      <div class="tool-icon"></div>
+                  </div>     
+              `;
 
       hwv = await startViewer("DotProductOffice")
 
