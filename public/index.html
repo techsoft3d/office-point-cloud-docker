@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>Office with Point Cloud | HOOPS Web Viewer</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1;IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="user-scalable=no" />
+  <!-- Google Tag Manager -->
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-PB9P4KS');</script>
+  <!-- End Google Tag Manager -->
+  <link rel="stylesheet" href="stylesheets/TreeControl.css" />
+  <link rel="stylesheet" href="stylesheets/Toolbar.css" />
+  <link rel="stylesheet" href="stylesheets/Common.css" />
+  <link rel="stylesheet" href="stylesheets/Desktop.css" />
+  <link rel="stylesheet" href="stylesheets/NoteText.css" />
+  <link rel="stylesheet" href="stylesheets/PropertyWindow.css" />
+  <link rel="stylesheet" href="stylesheets/ViewerSettings.css" />
+  <link rel="stylesheet" href="stylesheets/jquery.minicolors.css" />
+  <link rel="stylesheet" href="stylesheets/jquery-ui.min.css" />
+  <link rel="stylesheet" href="stylesheets/custom.css" />
+  <link rel="stylesheet" href="stylesheets/drop-down.css" />
+
+  <script type="text/javascript" src="hoops/hoops_web_viewer.js"></script>
+  <script type="text/javascript" src="javascripts/communicator_scripts/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="javascripts/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="javascripts/jquery.ui.touch-punch.min.js"></script>
+  <script type="text/javascript" src="javascripts/communicator_scripts/keymaster.min.js"></script>
+  <script type="text/javascript" src="javascripts/communicator_scripts/iscroll.min.js"></script>
+  <script type="text/javascript" src="javascripts/communicator_scripts/jquery.minicolors.min.js"></script>
+  <script type="text/javascript" src="javascripts/custom.js"></script>
+  <script type="text/javascript" src="javascripts/ServerConnection.js"></script>
+
+  <script>
+    var viewer = null;
+    var ui = null;
+  </script>
+
+  <script type="text/javascript">
+
+    initializeViewer()
+
+    async function startViewer(modelName) {
+
+
+      var server = new ServerConnection("https://apartment-building-architecture-docker.techsoft3d.com"); //change to IP of host server
+
+      await server.connect();
+      viewer = new Communicator.WebViewer({
+        containerId: "viewerContainer",
+        model: modelName,
+        endpointUri: server._endpointuri,
+        enginePath: '/hoops',
+        rendererType: 0,
+        boundingPreviewMode: "none",
+
+      });
+
+      await viewer.start();
+      return viewer
+    }
+
+
+    async function initializeViewer() {
+
+      try {
+        // enable functionality for point cloud toggle
+        const toggleScan = function () {
+          scanVisible = !scanVisible;
+          if (scanVisible) {
+            if (scanLoaded == false) {
+              hwv.getModel().loadSubtreeFromModel(0, "DotProductOfficeScan");
+              scanLoaded = true;
+            } else {
+              hwv.getModel().setNodesVisibility([findNode(0, "LR")], scanVisible);
+            }
+            document.getElementById("toggle-scan-button").classList.add("active-tool");
+            document.getElementById("toggle-scan-button").style.opacity = 1;
+            disablePointCloudWindow(false);
+          } else {
+            hwv.getModel().setNodesVisibility([findNode(0, "LR")], scanVisible);
+            document.getElementById("toggle-scan-button").classList.remove("active-tool");
+            document.getElementById("toggle-scan-button").style.opacity = 0.3;
+            disablePointCloudWindow(true);
+          }
+        };
+
+        // enable functionality for toggle solid visibility
+        const toggleSolid = function () {
+          var nodes = [
+            1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69,
+            73, 77, 81, 85, 89, 93,
+          ];
+          solidVisible = !solidVisible;
+          hwv.getModel().setNodesVisibility(nodes, solidVisible);
+          if (solidVisible) {
+            document.getElementById("toggle-solid-button").classList.add("active-tool");
+            document.getElementById("toggle-solid-button").style.opacity = 1;
+          } else {
+            document.getElementById("toggle-solid-button").classList.remove("active-tool");
+            document.getElementById("toggle-solid-button").style.opacity = 0.3;
+
+          }
+        };
+
+        let scanLoaded = false;
+        let scanVisible = false;
+        let solidVisible = true;
+
+        // add additional buttons for point cloud and solid visibility to the interface
+        document.querySelector(".toolbar-tools").innerHTML += `
+                  <div id="tool_separator_5" class="tool-separator"></div>
+                  <div id="toggle-scan-button" title="Toggle Point Cloud Visibility" data-operatorclass="toolbar-toggle-scan" class="hoops-tool">
+                      <div class="tool-icon"></div>
+                  </div>
+                  <div id="toggle-solid-button" title="Toggle Solid Visibility" data-operatorclass="toolbar-toggle-solid" class="hoops-tool active-tool">
+                      <div class="tool-icon"></div>
+                  </div>     
+              `;
+
+        hwv = await startViewer("DotProductOffice")
+
+        hwv.setCallbacks({
+          modelStructureReady: function () {
+            hwv.getView().setPointSize(0.0005, 5); // set smaller points
+            $(".dropdown").css("display", "inline-block");
+          },
+          walkOperatorActivated: function () {
+            var keyboardWalkOperator = hwv.operatorManager.getOperator(Communicator.OperatorId.WalkMode);
+            keyboardWalkOperator.setWalkSpeed(7000);
+          }
+        });
+
+        const uiConfig = {
+          containerId: "content",
+          screenConfiguration: Sample.screenConfiguration,
+        };
+        const ui = new Communicator.Ui.Desktop.DesktopUi(hwv, uiConfig);
+
+        ui._toolbar._actionsNullary.set("toolbar-toggle-scan", toggleScan);
+        ui._toolbar._actionsNullary.set("toolbar-toggle-solid", toggleSolid);
+
+        window.onresize = function () {
+          hwv.resizeCanvas();
+        };
+
+        var findNode = function (nodeId, name) {
+          var children = hwv.getModel().getNodeChildren(nodeId);
+          for (var i = 0; i < children.length; i++) {
+            if (hwv.getModel().getNodeName(children[i]) === name) {
+              return children[i];
+            } else {
+              ret = findNode(children[i], name);
+              if (ret != -1) return ret;
+            }
+          }
+          return -1;
+        };
+
+      } catch (error) {
+        console.error("Error initializing viewer:", error);
+
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB9P4KS" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <div id="ts3d_wrapper">
+    <header id="ts3d_header">
+      <div id="ts3d_title_wrapper">
+        <span id="ts3d_title">
+          <a href="https://techsoft3d.com/products/hoops-toolkits/hoops-communicator/">HOOPS Communicator</a>
+        </span>
+        <span id="ts3d_subtitle">| BIM Demo</span>
+      </div>
+      <div id="ts3d_logo_wrapper">
+        <a href="https://techsoft3d.com/"><img style="image-rendering: -webkit-optimize-contrast;"
+            src="stylesheets/images/Tech Soft 3D logo-2024.png" id="ts3d_logo" /></a>
+      </div>
+    </header>
+    <section id="ts3d_body">
+      <div id="viewer-container"></div>
+
+      <div class="dropdown">
+        <button class="drop-button">Views</button>
+        <div class="dropdown-content">
+          <a href="#!" onclick="toggleView(0)">
+            <div class="dropdown-text">
+              Default View
+            </div>
+          </a>
+          <a href="#!" onclick="toggleView(1)">
+            <div class="dropdown-text">
+              Kitchen
+            </div>
+          </a>
+          <a href="#!" onclick="toggleView(2)">
+            <div class="dropdown-text">
+              Bathroom
+            </div>
+          </a>
+          <a href="#!" onclick="toggleView(3)">
+            <div class="dropdown-text">
+              Roof 1
+            </div>
+          </a>
+          <a href="#!" onclick="toggleView(4)">
+            <div class="dropdown-text">
+              Roof 2
+            </div>
+          </a>
+          <a href="#!" onclick="toggleView(5)">
+            <div class="dropdown-text">
+              Garage
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div id="menuIconContainer">
+        <img id="menuIcon" class="menuCollapse" src="stylesheets/images/down-arrow.jpg" alt="menu"
+          onclick="menuToggle()" />
+      </div>
+      <div class="title rightside">
+        <p><span style="color: #000">MODEL</span> BROWSER</p>
+      </div>
+      <div id="rightside" class="rightside">
+        <div id="menuTabs">
+          <div id="tabArchitectural" class="selected">
+            <p>
+              <a href="#" onclick="toggleArchitectural()">ARCHITECTURAL</a>
+            </p>
+          </div>
+          <div id="tabStructural">
+            <p><a href="#" onclick="toggleStructural()">STRUCTURAL</a></p>
+          </div>
+        </div>
+        <div id="timelinePanel">
+          <img id="timelineCheckboxImg" class="timelineUnchecked" src="stylesheets/images/unchecked-box-new.png"
+            onclick="ConstructionClick();" />
+          <span>Timeline Viewer</span>
+          <input id="timelineCheckbox" type="checkbox" style="display: none" />
+          <div id="timelineControls" style="display: none">
+            <div>
+              <label for="timeline"></label>
+            </div>
+            <div>
+              <div id="timelineSlider"></div>
+              <input type="text" id="timeline" class="construction-days" readonly="readonly" disabled />
+              <button id="autoplayCheckbox" class="autoplayUnChecked" onclick="autoplayClick();">
+                <img id="playImg" src="stylesheets/images/play.png" alt="Play" />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="floorspanel">
+          <ol id="notselectable">
+            <li class="ui-widget-content ui-selected">All Floors</li>
+          </ol>
+          <ol id="selectable">
+            <li class="ui-widget-content ui-selected subfloor">Story 12</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 11</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 10</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 9</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 8</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 7</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 6</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 5</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 4</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 3</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 2</li>
+            <li class="ui-widget-content ui-selected subfloor">Story 1</li>
+            <li class="ui-widget-content ui-selected subfloor">Parking 2</li>
+            <li class="ui-widget-content ui-selected subfloor">Parking 1</li>
+            <li class="ui-widget-content ui-selected subfloor">Other</li>
+          </ol>
+        </div>
+        <div id="itempanel">
+          <ol id="notselectableStructure">
+            <li class="ui-widget-content ui-selected">All Domains</li>
+          </ol>
+          <ol id="selectableStructure">
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCROOF
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCTRANSPORTELEMENT
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCSLAB
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCWINDOW
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCBEAM
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCDOOR
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCCOLUMN
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCRAILING
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCFOOTING
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCFLOWTERMINAL
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCSTAIR
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCCOVERING
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCFURNISHINGELEMENT
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCCURTAINWALL
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCWALL
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCWALLSTANDARDCASE
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCBUILDINGELEMENTPROXY
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCRAMP
+            </li>
+            <li class="ui-widget-content ifcelements ui-selected subdomain">
+              IFCFLOWMOVINGDEVICE
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>
