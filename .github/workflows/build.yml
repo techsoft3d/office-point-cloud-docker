@@ -13,6 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Clean up server
+        run: docker system prune -a -f
+
       - name: Create hoops_license.txt
         run: |
           echo "${{ secrets.HOOPS_LICENSE }}" | base64 --decode > hoops_license.txt
@@ -46,15 +49,13 @@ jobs:
           docker pull ghcr.io/techsoft3d/node-server:latest
           docker pull ghcr.io/techsoft3d/proxy-server:latest
 
-      - name: Remove unused Docker images
-        run: docker image prune -af
       - name: Copy `./public` into External Docker Volume (Using Temporary Container)
         run: |
           docker run --rm \
             -v public:/volume \
             -v $(pwd)/public:/backup \
             alpine sh -c "cp -r /backup/* /volume/ && ls -la /volume/"
-  
+
           docker run --rm \
             -v patches:/volume \
             -v $(pwd)/patches:/backup \
@@ -63,11 +64,10 @@ jobs:
             -v models:/volume \
             -v $(pwd)/models:/backup \
             alpine sh -c "cp -r /backup/* /volume/ && ls -la /volume/"
-      
+
       - name: Build and Run Docker Containers
         run: |
           docker-compose up -d --force-recreate
-
 
   run-in-paris:
     name: Run on Paris Runner
@@ -76,6 +76,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Clean up server
+        run: docker system prune -a -f
       - name: Create hoops_license.txt
         run: |
           echo "${{ secrets.HOOPS_LICENSE }}" | base64 --decode > hoops_license.txt
@@ -109,15 +111,13 @@ jobs:
           docker pull ghcr.io/techsoft3d/node-server:latest
           docker pull ghcr.io/techsoft3d/proxy-server:latest
 
-      - name: Remove unused Docker images
-        run: docker image prune -af
       - name: Copy `./public` into External Docker Volume (Using Temporary Container)
         run: |
           docker run --rm \
             -v public:/volume \
             -v $(pwd)/public:/backup \
             alpine sh -c "cp -r /backup/* /volume/ && ls -la /volume/"
-  
+
           docker run --rm \
             -v patches:/volume \
             -v $(pwd)/patches:/backup \
@@ -126,7 +126,7 @@ jobs:
             -v models:/volume \
             -v $(pwd)/models:/backup \
             alpine sh -c "cp -r /backup/* /volume/ && ls -la /volume/"
-      
+
       - name: Build and Run Docker Containers
         run: |
           docker-compose up -d --force-recreate
